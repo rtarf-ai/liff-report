@@ -3,11 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>ระบบรายงานข่าวสาร v5.1</title>
+  <title>ระบบรายงานข่าวสาร v5.3</title>
 
+  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts: Sarabun -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- LINE LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
@@ -182,11 +189,11 @@
   </div>
 
   <script>
-    // === ใส่ค่าจริงที่นี่ ===
-    const LIFF_ID = "2008762104-jCr3Y4cc";
+    // === สำคัญ: แทนที่ด้วยค่าจริงของคุณ ===
+    const LIFF_ID = "2008762104-jCr3Y4cc"; // เช่น 165xxxxxxxx-xxxxxxxx
     const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzgmNBzuPs6H1ExLeW_Q2t3cPWpsqH5m5uYaLj_jfSWNtE06fWeIVqw-T96xn1-IWc/exec";
 
-    let currentThaiDate = "กำลังโหลด..."; // ตัวแปรเก็บวันที่จริง
+    let currentThaiDate = "กำลังโหลด...";
 
     function updateDisplays() {
       const inVal = parseInt(document.getElementById('inNews').value) || 0;
@@ -215,12 +222,12 @@
           throw new Error("ฟีเจอร์ Share Target Picker ไม่พร้อมใช้งาน\nกรุณาเปิดใน LINE Developers Console");
         }
 
-        // ดึงวันที่จาก backend
+        // ดึงวันที่ไทยจาก backend
         const res = await fetch(`${GAS_BACKEND_URL}?action=getDate`);
         if (!res.ok) throw new Error("ไม่สามารถดึงวันที่ได้");
         const { date } = await res.json();
 
-        currentThaiDate = date; // เก็บไว้ใช้ใน Flex Message
+        currentThaiDate = date;
         document.getElementById('thai-date').textContent = date;
 
         // แสดงหน้าหลัก
@@ -231,8 +238,8 @@
         console.error(err);
         document.getElementById('loading-screen').innerHTML = `
           <p class="text-red-400 text-lg mb-4">เกิดข้อผิดพลาด</p>
-          <p class="text-white text-center px-8">${err.message}</p>
-          <button onclick="location.reload()" class="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
+          <p class="text-white text-center px-8 mb-6">${err.message}</p>
+          <button onclick="location.reload()" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
             ลองใหม่
           </button>
         `;
@@ -252,7 +259,6 @@
       btn.disabled = true;
       btn.textContent = 'กำลังส่ง...';
 
-      // สร้าง Flex Message โดยใช้ currentThaiDate ที่มีค่าถูกต้องแล้ว
       const flexMessage = {
         type: "bubble",
         size: "mega",
@@ -297,15 +303,16 @@
       };
 
       try {
-        // บันทึกข้อมูล
-        const saveRes = await fetch(GAS_BACKEND_URL, {
+        // แก้ CORS โดยใช้ Content-Type: text/plain
+        await fetch(GAS_BACKEND_URL, {
           method: 'POST',
           body: JSON.stringify({ action: 'save', reporter, inNews, outNews, total, dateStr: currentThaiDate }),
-          headers: { 'Content-Type': 'application/json' }
+          headers: {
+            'Content-Type': 'text/plain'  // สำคัญ! แก้ปัญหา CORS
+          }
         });
-        if (!saveRes.ok) throw new Error("บันทึกข้อมูลล้มเหลว");
 
-        // ส่งไป LINE
+        // ส่ง Flex Message ไป LINE
         const result = await liff.shareTargetPicker([{
           type: "flex",
           altText: "รายงานยอดข่าวสาร - " + reporter,
@@ -322,7 +329,7 @@
         }
       } catch (err) {
         console.error(err);
-        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+        Swal.fire('เกิดข้อผิดพลาด', 'อาจบันทึกข้อมูลไม่สำเร็จ แต่ส่ง LINE อาจยังทำงาน', 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = 'ส่งรายงานเข้ากลุ่ม LINE และบันทึกข้อมูล';
