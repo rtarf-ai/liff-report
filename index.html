@@ -3,18 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>ระบบรายงานข่าวสาร v5.0</title>
+  <title>ระบบรายงานข่าวสาร v5.1</title>
 
-  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet">
-  
-  <!-- Google Fonts: Sarabun -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <!-- LINE LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
@@ -58,9 +51,7 @@
       padding-top: 1rem;
       background: rgba(15, 23, 42, 0.6);
     }
-    .input-group {
-      margin-bottom: 1.75rem;
-    }
+    .input-group { margin-bottom: 1.75rem; }
     .label-text {
       font-size: 0.95rem;
       font-weight: 600;
@@ -86,15 +77,8 @@
       background: rgba(30, 41, 59, 0.9);
     }
     input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      opacity: 0.4;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
-      margin: 2rem 0;
-    }
+    input[type="number"]::-webkit-outer-spin-button { opacity: 0.4; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 2rem 0; }
     .stat-card {
       background: rgba(30, 41, 59, 0.6);
       border-radius: 20px;
@@ -103,12 +87,7 @@
       border: 1px solid rgba(148, 163, 184, 0.2);
       backdrop-filter: blur(10px);
     }
-    .stat-value {
-      font-size: 3rem;
-      font-weight: 800;
-      margin: 0.5rem 0;
-      line-height: 1;
-    }
+    .stat-value { font-size: 3rem; font-weight: 800; margin: 0.5rem 0; line-height: 1; }
     .total-card {
       background: linear-gradient(135deg, #1e1b4b, #4c1d95);
       border-radius: 20px;
@@ -117,12 +96,7 @@
       margin: 2rem 0;
       border: 1px solid rgba(167, 139, 250, 0.3);
     }
-    .total-value {
-      font-size: 4.5rem;
-      font-weight: 900;
-      color: #ddd6fe;
-      line-height: 1;
-    }
+    .total-value { font-size: 4.5rem; font-weight: 900; color: #ddd6fe; line-height: 1; }
     .submit-btn {
       width: 100%;
       padding: 1.25rem;
@@ -136,27 +110,13 @@
       transition: all 0.4s ease;
       box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
     }
-    .submit-btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(139, 92, 246, 0.6);
-    }
-    .submit-btn:active {
-      transform: translateY(0);
-    }
+    .submit-btn:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(139, 92, 246, 0.6); }
+    .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
     .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: #0f172a;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
+      position: fixed; inset: 0; background: #0f172a;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .animate-fade { animation: fadeIn 0.8s ease-out forwards; }
   </style>
 </head>
@@ -170,7 +130,6 @@
 
   <!-- Main Card -->
   <div id="main-content" class="main-card hidden">
-    <!-- Header -->
     <div class="header-gradient">
       <div class="w-20 h-20 bg-white/20 rounded-2xl mx-auto mb-4 flex items-center justify-center backdrop-blur">
         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,10 +141,8 @@
       <p id="thai-date" class="text-white/90 text-lg font-medium">กำลังโหลดวันที่...</p>
     </div>
 
-    <!-- Form -->
     <div class="form-container">
       <form onsubmit="event.preventDefault();">
-        <!-- Reporter -->
         <div class="input-group animate-fade" style="animation-delay: 0.2s;">
           <label class="label-text">ชื่อผู้รายงาน</label>
           <select id="reporter" required>
@@ -198,7 +155,6 @@
           </select>
         </div>
 
-        <!-- Stats Grid -->
         <div class="stats-grid">
           <div class="stat-card animate-fade" style="animation-delay: 0.3s;">
             <p class="text-blue-300 text-sm font-semibold uppercase tracking-wider">ข่าวรับ</p>
@@ -212,14 +168,12 @@
           </div>
         </div>
 
-        <!-- Total -->
         <div class="total-card animate-fade" style="animation-delay: 0.5s;">
           <p class="text-purple-200 text-lg font-semibold uppercase tracking-wider mb-2">รวมทั้งหมด</p>
           <p class="total-value" id="totalNews">0</p>
           <p class="text-purple-300 text-sm mt-3">ข่าว</p>
         </div>
 
-        <!-- Submit -->
         <button type="button" id="submitBtn" onclick="sendReport()" class="submit-btn animate-fade" style="animation-delay: 0.6s;">
           ส่งรายงานเข้ากลุ่ม LINE และบันทึกข้อมูล
         </button>
@@ -228,23 +182,26 @@
   </div>
 
   <script>
+    // === ใส่ค่าจริงที่นี่ ===
     const LIFF_ID = "2008762104-jCr3Y4cc";
     const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzgmNBzuPs6H1ExLeW_Q2t3cPWpsqH5m5uYaLj_jfSWNtE06fWeIVqw-T96xn1-IWc/exec";
+
+    let currentThaiDate = "กำลังโหลด..."; // ตัวแปรเก็บวันที่จริง
 
     function updateDisplays() {
       const inVal = parseInt(document.getElementById('inNews').value) || 0;
       const outVal = parseInt(document.getElementById('outNews').value) || 0;
       const total = inVal + outVal;
 
-      document.getElementById('inNewsDisplay').textContent = inVal.toLocaleString();
-      document.getElementById('outNewsDisplay').textContent = outVal.toLocaleString();
-      document.getElementById('totalNews').textContent = total.toLocaleString();
+      document.getElementById('inNewsDisplay').textContent = inVal.toLocaleString('th-TH');
+      document.getElementById('outNewsDisplay').textContent = outVal.toLocaleString('th-TH');
+      document.getElementById('totalNews').textContent = total.toLocaleString('th-TH');
     }
 
     async function initLiff() {
       try {
         if (!LIFF_ID || LIFF_ID === "YOUR_LIFF_ID_HERE") {
-          throw new Error("กรุณาใส่ LIFF ID จริง");
+          throw new Error("กรุณาใส่ LIFF ID จริงในโค้ด");
         }
 
         await liff.init({ liffId: LIFF_ID });
@@ -255,18 +212,30 @@
         }
 
         if (!liff.isApiAvailable('shareTargetPicker')) {
-          throw new Error("Share Target Picker ไม่พร้อมใช้งาน");
+          throw new Error("ฟีเจอร์ Share Target Picker ไม่พร้อมใช้งาน\nกรุณาเปิดใน LINE Developers Console");
         }
 
+        // ดึงวันที่จาก backend
         const res = await fetch(`${GAS_BACKEND_URL}?action=getDate`);
+        if (!res.ok) throw new Error("ไม่สามารถดึงวันที่ได้");
         const { date } = await res.json();
+
+        currentThaiDate = date; // เก็บไว้ใช้ใน Flex Message
         document.getElementById('thai-date').textContent = date;
 
+        // แสดงหน้าหลัก
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('main-content').classList.remove('hidden');
 
       } catch (err) {
-        Swal.fire('ข้อผิดพลาด', err.message, 'error');
+        console.error(err);
+        document.getElementById('loading-screen').innerHTML = `
+          <p class="text-red-400 text-lg mb-4">เกิดข้อผิดพลาด</p>
+          <p class="text-white text-center px-8">${err.message}</p>
+          <button onclick="location.reload()" class="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
+            ลองใหม่
+          </button>
+        `;
       }
     }
 
@@ -275,7 +244,6 @@
       const inNews = parseInt(document.getElementById('inNews').value) || 0;
       const outNews = parseInt(document.getElementById('outNews').value) || 0;
       const total = inNews + outNews;
-      const dateStr = document.getElementById('thai-date').textContent;
 
       if (!reporter) return Swal.fire('กรุณาเลือกชื่อผู้รายงาน', '', 'warning');
       if (total === 0) return Swal.fire('กรุณากรอกยอดข่าวอย่างน้อย 1 รายการ', '', 'warning');
@@ -284,50 +252,82 @@
       btn.disabled = true;
       btn.textContent = 'กำลังส่ง...';
 
-      const flexMessage = { /* เดิมทั้งหมด */ };
+      // สร้าง Flex Message โดยใช้ currentThaiDate ที่มีค่าถูกต้องแล้ว
+      const flexMessage = {
+        type: "bubble",
+        size: "mega",
+        header: {
+          type: "box",
+          layout: "vertical",
+          paddingAll: "20px",
+          backgroundColor: "#6366f1",
+          contents: [
+            { type: "text", text: "📊 รายงานสรุปยอดข่าวสาร", weight: "bold", size: "xl", color: "#ffffff" },
+            { type: "text", text: currentThaiDate, size: "sm", color: "#ffffffcc", margin: "md" }
+          ]
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          paddingAll: "25px",
+          contents: [
+            { type: "box", layout: "horizontal", contents: [
+              { type: "text", text: "📥 ข่าวรับ", color: "#cccccc", flex: 4 },
+              { type: "text", text: inNews.toLocaleString('th-TH') + " ข่าว", weight: "bold", color: "#60a5fa", align: "end" }
+            ]},
+            { type: "box", layout: "horizontal", margin: "lg", contents: [
+              { type: "text", text: "📤 ข่าวส่ง", color: "#cccccc", flex: 4 },
+              { type: "text", text: outNews.toLocaleString('th-TH') + " ข่าว", weight: "bold", color: "#f87171", align: "end" }
+            ]},
+            { type: "separator", margin: "xl" },
+            { type: "box", layout: "horizontal", margin: "xl", contents: [
+              { type: "text", text: "รวมทั้งหมด", weight: "bold", size: "lg" },
+              { type: "text", text: total.toLocaleString('th-TH') + " ข่าว", weight: "bold", size: "xl", color: "#a78bfa", align: "end" }
+            ]}
+          ]
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            { type: "text", text: "รายงานโดย: " + reporter, color: "#999999", size: "sm", align: "center" }
+          ]
+        },
+        styles: { footer: { separator: true } }
+      };
 
       try {
-        await fetch(GAS_BACKEND_URL, {
+        // บันทึกข้อมูล
+        const saveRes = await fetch(GAS_BACKEND_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'save', reporter, inNews, outNews, total, dateStr }),
+          body: JSON.stringify({ action: 'save', reporter, inNews, outNews, total, dateStr: currentThaiDate }),
           headers: { 'Content-Type': 'application/json' }
         });
+        if (!saveRes.ok) throw new Error("บันทึกข้อมูลล้มเหลว");
 
+        // ส่งไป LINE
         const result = await liff.shareTargetPicker([{
           type: "flex",
-          altText: "รายงานยอดข่าวสาร",
+          altText: "รายงานยอดข่าวสาร - " + reporter,
           contents: flexMessage
         }]);
 
         if (result) {
-          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'ส่งและบันทึกเรียบร้อย', timer: 2000 });
-          // Reset form
+          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'ส่งและบันทึกเรียบร้อยแล้ว', timer: 2000 });
+          // รีเซ็ตฟอร์ม
           document.getElementById('reporter').value = '';
           document.getElementById('inNews').value = '0';
           document.getElementById('outNews').value = '0';
           updateDisplays();
         }
       } catch (err) {
-        Swal.fire('ข้อผิดพลาด', err.message, 'error');
+        console.error(err);
+        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = 'ส่งรายงานเข้ากลุ่ม LINE และบันทึกข้อมูล';
       }
     }
-
-    // Flex Message (เหมือนเดิม)
-    const flexMessage = {
-      type: "bubble", size: "mega",
-      header: {
-        type: "box", layout: "vertical", paddingAll: "20px", backgroundColor: "#6366f1",
-        contents: [
-          { type: "text", text: "📊 รายงานสรุปยอดข่าวสาร", weight: "bold", size: "xl", color: "#ffffff" },
-          { type: "text", text: dateStr || "...", size: "sm", color: "#ffffffcc", margin: "md" }
-        ]
-      },
-      body: { /* ... เดิมทั้งหมด ... */ },
-      footer: { /* ... */ }
-    };
 
     window.onload = initLiff;
   </script>
