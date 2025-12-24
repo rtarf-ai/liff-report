@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>ระบบรายงานข่าวสาร v4.0</title>
+  
+  <!-- Tailwind CSS v3.4 (Production Minified) -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts: Sarabun -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap" rel="stylesheet">
+  
+  <!-- SweetAlert2 & LINE LIFF SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
+  <style>
+    body { 
+      font-family: 'Sarabun', sans-serif;
+      background: linear-gradient(135deg, #1e1e2f 0%, #2d3436 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      width: 100%;
+      max-width: 28rem;
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover { 
+      transform: translateY(-4px); 
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5); 
+    }
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(30, 30, 47, 0.98);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.6s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-overlay">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-400 mb-6"></div>
+    <p id="loading-text" class="text-white text-xl font-light tracking-wider animate-pulse">กำลังเชื่อมต่อ LINE...</p>
+    <button id="retry-btn" onclick="initLiff()" class="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg hidden transition">
+      ลองเชื่อมต่อใหม่
+    </button>
+  </div>
+
+  <!-- Main Form -->
+  <div id="main-content" class="glass-card p-6 md:p-8 hidden">
+    <div class="text-center mb-8 animate-fade-in" style="animation-delay: 0.1s;">
+      <div class="w-20 h-20 bg-indigo-600 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-2xl">
+        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-white">ระบบรายงานข่าวสาร</h1>
+      <p id="thai-date" class="text-indigo-300 font-medium mt-2">กำลังโหลดวันที่...</p>
+    </div>
+
+    <form onsubmit="event.preventDefault();" class="space-y-6">
+      <div class="animate-fade-in" style="animation-delay: 0.2s;">
+        <label class="block text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">ชื่อผู้รายงาน</label>
+        <select id="reporter" class="w-full p-4 bg-gray-800/60 border border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-white transition">
+          <option value="">เลือกรายชื่อจากระบบ</option>
+          <option>สมชาย สายลุย</option>
+          <option>สมหญิง จริงใจ</option>
+          <option>อำนวย ช่วยเหลือ</option>
+          <option>วิชัย มีสุข</option>
+          <option>เกรียงไกร ใจดี</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-5 animate-fade-in" style="animation-delay: 0.3s;">
+        <div class="bg-blue-900/30 p-5 rounded-xl border border-blue-500/30 backdrop-blur">
+          <label class="block text-sm font-bold text-blue-300 uppercase mb-3">📥 ข่าวรับ</label>
+          <input type="number" id="inNews" value="0" min="0" oninput="calcTotal()" 
+                 class="w-full bg-transparent text-3xl font-black text-blue-100 outline-none">
+        </div>
+        <div class="bg-red-900/30 p-5 rounded-xl border border-red-500/30 backdrop-blur">
+          <label class="block text-sm font-bold text-red-300 uppercase mb-3">📤 ข่าวส่ง</label>
+          <input type="number" id="outNews" value="0" min="0" oninput="calcTotal()" 
+                 class="w-full bg-transparent text-3xl font-black text-red-100 outline-none">
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-r from-gray-900 to-indigo-900/60 p-7 rounded-xl shadow-2xl relative overflow-hidden animate-fade-in" style="animation-delay: 0.4s;">
+        <div class="relative z-10 flex justify-between items-center">
+          <span class="text-gray-300 font-semibold text-lg">รวมยอดข่าวทั้งสิ้น</span>
+          <span id="totalNews" class="text-4xl font-black text-white">0</span>
+        </div>
+        <div class="absolute inset-0 bg-indigo-600 opacity-5 blur-3xl"></div>
+      </div>
+
+      <button type="button" onclick="sendReport()" id="submitBtn"
+              class="w-full bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white font-bold text-lg py-5 rounded-xl shadow-2xl flex items-center justify-center space-x-3 transform hover:scale-105 transition-all animate-fade-in" 
+              style="animation-delay: 0.5s;">
+        <span>ส่งรายงานเข้ากลุ่ม LINE และบันทึกข้อมูล</span>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // === สำคัญ: แทนที่ด้วย LIFF ID จริงของคุณ ===
+    const LIFF_ID = "2008762104-jCr3Y4cc"; // เช่น "1651234567-AbCdEfGh"
+
+    // === URL ของ Google Apps Script Backend (สำหรับบันทึกข้อมูล) ===
+    const GAS_BACKEND_URL = "https://script.google.com/macros/s/YOUR_GAS_BACKEND_ID/exec";
+
+    async function initLiff() {
+      const loadingText = document.getElementById('loading-text');
+      const retryBtn = document.getElementById('retry-btn');
+      loadingText.innerText = 'กำลังเริ่มต้นระบบ...';
+      retryBtn.classList.add('hidden');
+
+      try {
+        if (!LIFF_ID || LIFF_ID === "YOUR_LIFF_ID_HERE") {
+          throw new Error("กรุณาใส่ LIFF ID จริงในตัวแปร LIFF_ID");
+        }
+
+        await liff.init({ liffId: LIFF_ID });
+        loadingText.innerText = 'ตรวจสอบการล็อกอิน...';
+
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: window.location.href });
+          return;
+        }
+
+        if (!liff.isApiAvailable('shareTargetPicker')) {
+          throw new Error("Share Target Picker ไม่พร้อมใช้งาน\nกรุณาเปิดใน LINE Developers Console และอัปเดต LINE App");
+        }
+
+        // โหลดวันที่ไทยจาก backend
+        const dateRes = await fetch(GAS_BACKEND_URL + '?action=getDate');
+        const { date } = await dateRes.json();
+        document.getElementById('thai-date').innerText = date;
+
+        // แสดงหน้าหลัก
+        document.getElementById('loading-screen').style.opacity = '0';
+        setTimeout(() => {
+          document.getElementById('loading-screen').classList.add('hidden');
+          document.getElementById('main-content').classList.remove('hidden');
+        }, 600);
+
+      } catch (error) {
+        console.error(error);
+        loadingText.innerText = 'เชื่อมต่อล้มเหลว';
+        retryBtn.classList.remove('hidden');
+        Swal.fire('ไม่สามารถเชื่อมต่อ LINE', error.message, 'error');
+      }
+    }
+
+    function calcTotal() {
+      const inVal = parseInt(document.getElementById('inNews').value) || 0;
+      const outVal = parseInt(document.getElementById('outNews').value) || 0;
+      document.getElementById('totalNews').innerText = (inVal + outVal).toLocaleString('th-TH');
+    }
+
+    async function sendReport() {
+      const reporter = document.getElementById('reporter').value.trim();
+      const inNews = parseInt(document.getElementById('inNews').value) || 0;
+      const outNews = parseInt(document.getElementById('outNews').value) || 0;
+      const total = inNews + outNews;
+      const dateStr = document.getElementById('thai-date').innerText;
+
+      if (!reporter) return Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกชื่อผู้รายงาน', 'warning');
+      if (total === 0) return Swal.fire('ข้อผิดพลาด', 'กรุณากรอกยอดข่าวอย่างน้อย 1 รายการ', 'warning');
+
+      const btn = document.getElementById('submitBtn');
+      const originalHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="animate-pulse">กำลังดำเนินการ...</span>';
+
+      const flexMessage = {
+        type: "bubble", size: "mega",
+        header: {
+          type: "box", layout: "vertical", paddingAll: "20px", backgroundColor: "#4f46e5",
+          contents: [
+            { type: "text", text: "📊 รายงานสรุปยอดข่าวสาร", weight: "bold", size: "xl", color: "#ffffff" },
+            { type: "text", text: dateStr, size: "sm", color: "#ffffffaa", margin: "md" }
+          ]
+        },
+        body: {
+          type: "box", layout: "vertical", paddingAll: "25px",
+          contents: [
+            { type: "box", layout: "horizontal", contents: [
+              { type: "text", text: "📥 ข่าวรับ", color: "#aaaaaa", flex: 4 },
+              { type: "text", text: inNews.toLocaleString() + " ข่าว", weight: "bold", color: "#3b82f6", align: "end" }
+            ]},
+            { type: "box", layout: "horizontal", margin: "lg", contents: [
+              { type: "text", text: "📤 ข่าวส่ง", color: "#aaaaaa", flex: 4 },
+              { type: "text", text: outNews.toLocaleString() + " ข่าว", weight: "bold", color: "#ef4444", align: "end" }
+            ]},
+            { type: "separator", margin: "xl" },
+            { type: "box", layout: "horizontal", margin: "xl", contents: [
+              { type: "text", text: "รวมทั้งหมด", weight: "bold", size: "lg" },
+              { type: "text", text: total.toLocaleString() + " ข่าว", weight: "bold", size: "xl", color: "#818cf8", align: "end" }
+            ]}
+          ]
+        },
+        footer: {
+          type: "box", layout: "vertical",
+          contents: [{ type: "text", text: "รายงานโดย: " + reporter, color: "#888888", size: "sm", align: "center" }]
+        },
+        styles: { footer: { separator: true } }
+      };
+
+      try {
+        // บันทึกข้อมูลก่อน
+        const saveRes = await fetch(GAS_BACKEND_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'save', reporter, inNews, outNews, total, dateStr }),
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (!saveRes.ok) throw new Error('บันทึกข้อมูลล้มเหลว');
+
+        // ส่ง Flex Message
+        const result = await liff.shareTargetPicker([{
+          type: "flex",
+          altText: "รายงานยอดข่าวสาร - " + reporter,
+          contents: flexMessage
+        }]);
+
+        if (result) {
+          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'ส่งและบันทึกเรียบร้อยแล้ว', timer: 2000 });
+        } else {
+          Swal.fire('ยกเลิก', 'ไม่ได้เลือกกลุ่มเป้าหมาย', 'info');
+        }
+      } catch (err) {
+        Swal.fire('ข้อผิดพลาด', err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }
+    }
+
+    window.onload = initLiff;
+  </script>
+</body>
+</html>
