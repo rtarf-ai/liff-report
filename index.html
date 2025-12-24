@@ -3,271 +3,296 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>ระบบรายงานข่าวสาร</title>
-  
+  <title>ระบบรายงานข่าวสาร v4.1</title>
+
+  <!-- Tailwind CSS v3.4 -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- Google Fonts: Sarabun -->
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- LINE LIFF SDK -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
     body {
       font-family: 'Sarabun', sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
       min-height: 100vh;
       margin: 0;
-      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e0e0ff;
     }
-    .glass {
-      background: rgba(30, 41, 59, 0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    .glass-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+      transition: all 0.4s ease;
     }
-    .input-field {
-      background: rgba(51, 65, 85, 0.4);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      transition: all 0.2s ease;
+    .glass-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
     }
-    .input-field:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 15, 30, 0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
     }
-    .number-input {
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-align: center;
+    .btn-gradient {
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      transition: all 0.3s ease;
     }
-    .btn-primary {
-      background: linear-gradient(to right, #6366f1, #8b5cf6);
-      transition: all 0.25s ease;
-    }
-    .btn-primary:hover {
+    .btn-gradient:hover {
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
       transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
     }
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-    .loading-spinner {
-      border-top-color: #c7d2fe;
-      border-right-color: #c7d2fe;
-      border-bottom-color: #c7d2fe;
-      border-left-color: transparent;
+    .input-focus:focus {
+      outline: none;
+      ring: 2px solid #818cf8;
+      border-color: #818cf8;
     }
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .animate-fade-up {
-      animation: fadeInUp 0.6s ease-out forwards;
+    .animate-fade-in-up {
+      animation: fadeInUp 0.8s ease-out forwards;
     }
   </style>
 </head>
 <body>
 
-  <!-- Loading -->
-  <div id="loading-screen" class="fixed inset-0 bg-slate-900/95 flex flex-col items-center justify-center z-50 transition-opacity duration-500">
-    <div class="loading-spinner animate-spin rounded-full h-16 w-16 border-4 mb-6"></div>
-    <p id="loading-text" class="text-slate-200 text-lg font-medium tracking-wide">กำลังเชื่อมต่อ LINE...</p>
-    <button id="retry-btn" onclick="initLiff()" class="mt-8 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-lg hidden transition">
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-overlay">
+    <div class="relative">
+      <div class="animate-spin rounded-full h-20 w-20 border-t-4 border-indigo-400 border-opacity-50"></div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+      </div>
+    </div>
+    <p id="loading-text" class="mt-8 text-white text-xl font-medium tracking-wide">กำลังเชื่อมต่อ LINE...</p>
+    <button id="retry-btn" onclick="initLiff()" class="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg hidden transition">
       ลองใหม่
     </button>
   </div>
 
-  <!-- Main content -->
-  <div id="main-content" class="hidden min-h-screen flex items-center justify-center p-4">
-    <div class="glass w-full max-w-md p-8">
-      <div class="text-center mb-8 animate-fade-up" style="animation-delay: 0.1s;">
-        <div class="w-20 h-20 mx-auto mb-4 bg-indigo-600/80 rounded-2xl flex items-center justify-center shadow-lg">
-          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </div>
-        <h1 class="text-2xl font-bold text-white">รายงานยอดข่าวสารประจำวัน</h1>
-        <p id="thai-date" class="text-indigo-300 mt-1 text-sm">กำลังโหลดวันที่...</p>
+  <!-- Main Content -->
+  <div id="main-content" class="glass-card hidden">
+    <div class="text-center mb-10">
+      <div class="inline-block bg-gradient-to-br from-indigo-600 to-purple-700 p-5 rounded-2xl shadow-2xl mb-6 transform hover:scale-105 transition">
+        <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold text-white mb-2">ระบบรายงานข่าวสาร</h1>
+      <p id="thai-date" class="text-indigo-300 font-medium text-lg">กำลังโหลดวันที่...</p>
+    </div>
+
+    <form onsubmit="event.preventDefault();" class="space-y-6">
+      <!-- Reporter -->
+      <div class="animate-fade-in-up" style="animation-delay: 0.1s;">
+        <label class="block text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2">ชื่อผู้รายงาน</label>
+        <select id="reporter" class="w-full px-5 py-4 bg-gray-800/40 border border-gray-600 rounded-xl text-white text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none input-focus transition">
+          <option value="">เลือกรายชื่อ</option>
+          <option>สมชาย สายลุย</option>
+          <option>สมหญิง จริงใจ</option>
+          <option>อำนวย ช่วยเหลือ</option>
+          <option>วิชัย มีสุข</option>
+          <option>เกรียงไกร ใจดี</option>
+        </select>
       </div>
 
-      <form onsubmit="event.preventDefault();" class="space-y-6">
-        <!-- Reporter -->
-        <div class="animate-fade-up" style="animation-delay: 0.2s;">
-          <label class="block text-slate-300 text-sm font-medium mb-2">ผู้รายงาน</label>
-          <select id="reporter" class="input-field w-full p-4 rounded-xl text-white text-base">
-            <option value="">-- เลือกชื่อ --</option>
-            <option>สมชาย สายลุย</option>
-            <option>สมหญิง จริงใจ</option>
-            <option>อำนวย ช่วยเหลือ</option>
-            <option>วิชัย มีสุข</option>
-            <option>เกรียงไกร ใจดี</option>
-          </select>
+      <!-- News Grid -->
+      <div class="grid grid-cols-2 gap-5 animate-fade-in-up" style="animation-delay: 0.2s;">
+        <div class="bg-blue-900/20 p-6 rounded-2xl border border-blue-500/30 backdrop-blur-md shadow-inner">
+          <label class="block text-sm font-semibold text-blue-300 uppercase mb-3">📥 ข่าวรับ</label>
+          <input type="number" id="inNews" value="0" min="0" oninput="calcTotal()" 
+                 class="w-full bg-transparent text-4xl font-black text-blue-100 outline-none text-center">
         </div>
-
-        <!-- News counts -->
-        <div class="grid grid-cols-2 gap-4 animate-fade-up" style="animation-delay: 0.3s;">
-          <!-- Incoming -->
-          <div class="text-center">
-            <label class="block text-emerald-400 text-sm font-medium mb-2">ข่าวรับ</label>
-            <input type="number" id="inNews" value="0" min="0" oninput="calcTotal()"
-                   class="input-field number-input w-full rounded-xl py-3">
-            <p class="text-xs text-slate-400 mt-1">จำนวนข่าวที่ได้รับ</p>
-          </div>
-          <!-- Outgoing -->
-          <div class="text-center">
-            <label class="block text-rose-400 text-sm font-medium mb-2">ข่าวส่ง</label>
-            <input type="number" id="outNews" value="0" min="0" oninput="calcTotal()"
-                   class="input-field number-input w-full rounded-xl py-3">
-            <p class="text-xs text-slate-400 mt-1">จำนวนข่าวที่ส่งออก</p>
-          </div>
+        <div class="bg-red-900/20 p-6 rounded-2xl border border-red-500/30 backdrop-blur-md shadow-inner">
+          <label class="block text-sm font-semibold text-red-300 uppercase mb-3">📤 ข่าวส่ง</label>
+          <input type="number" id="outNews" value="0" min="0" oninput="calcTotal()" 
+                 class="w-full bg-transparent text-4xl font-black text-red-100 outline-none text-center">
         </div>
+      </div>
 
-        <!-- Total -->
-        <div class="bg-slate-800/50 rounded-xl p-6 text-center animate-fade-up" style="animation-delay: 0.4s;">
-          <p class="text-slate-300 text-sm mb-2">ยอดรวมทั้งสิ้น</p>
-          <div class="text-4xl font-bold text-indigo-300" id="totalNews">0</div>
-          <p class="text-xs text-slate-400 mt-1">ข่าว</p>
+      <!-- Total -->
+      <div class="bg-gradient-to-r from-gray-900/70 to-indigo-900/50 p-7 rounded-2xl shadow-inner relative overflow-hidden animate-fade-in-up" style="animation-delay: 0.3s;">
+        <div class="relative z-10 flex justify-between items-center">
+          <span class="text-gray-300 font-semibold text-lg">รวมยอดข่าวทั้งสิ้น</span>
+          <span id="totalNews" class="text-5xl font-black text-white">0</span>
         </div>
+        <div class="absolute inset-0 bg-indigo-600 opacity-5 blur-3xl"></div>
+      </div>
 
-        <!-- Submit -->
-        <button type="button" id="submitBtn" onclick="sendReport()"
-                class="btn-primary w-full py-5 rounded-xl text-lg font-semibold shadow-lg flex items-center justify-center gap-3">
-          <span>ส่งรายงาน</span>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-        </button>
-      </form>
-    </div>
+      <!-- Submit Button -->
+      <button type="button" id="submitBtn" onclick="sendReport()"
+              class="w-full btn-gradient text-white font-bold text-lg py-5 rounded-2xl shadow-2xl flex items-center justify-center space-x-3 transform hover:scale-105 transition-all animate-fade-in-up" style="animation-delay: 0.4s;">
+        <span>ส่งรายงานเข้ากลุ่ม LINE และบันทึก</span>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+        </svg>
+      </button>
+    </form>
   </div>
 
   <script>
-    // แทนที่ด้วยค่าเหล่านี้
+    // === แทนที่ด้วย LIFF ID จริงของคุณ ===
     const LIFF_ID = "2008762104-jCr3Y4cc";
+
+    // === URL ของ GAS Backend (สำหรับบันทึกข้อมูล) ===
     const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzgmNBzuPs6H1ExLeW_Q2t3cPWpsqH5m5uYaLj_jfSWNtE06fWeIVqw-T96xn1-IWc/exec";
 
     async function initLiff() {
       const loadingText = document.getElementById('loading-text');
       const retryBtn = document.getElementById('retry-btn');
-      loadingText.textContent = 'กำลังเชื่อมต่อ LINE...';
+      loadingText.innerText = 'กำลังเริ่มต้นระบบ...';
       retryBtn.classList.add('hidden');
 
       try {
+        if (!LIFF_ID || LIFF_ID === "YOUR_LIFF_ID_HERE") {
+          throw new Error("กรุณาใส่ LIFF ID จริงในตัวแปร LIFF_ID");
+        }
+
         await liff.init({ liffId: LIFF_ID });
+
         if (!liff.isLoggedIn()) {
           liff.login({ redirectUri: window.location.href });
           return;
         }
+
         if (!liff.isApiAvailable('shareTargetPicker')) {
-          throw new Error('ฟีเจอร์ Share Target Picker ไม่พร้อมใช้งาน');
+          throw new Error("Share Target Picker ไม่พร้อมใช้งาน");
         }
 
-        const res = await fetch(GAS_BACKEND_URL + '?action=getDate');
+        // ดึงวันที่ไทยจาก backend
+        const res = await fetch(`${GAS_BACKEND_URL}?action=getDate`);
         const { date } = await res.json();
-        document.getElementById('thai-date').textContent = date;
+        document.getElementById('thai-date').innerText = date;
 
+        // แสดงเนื้อหาหลัก
         document.getElementById('loading-screen').style.opacity = '0';
         setTimeout(() => {
           document.getElementById('loading-screen').classList.add('hidden');
           document.getElementById('main-content').classList.remove('hidden');
-        }, 500);
+        }, 800);
 
       } catch (err) {
-        loadingText.textContent = 'ไม่สามารถเชื่อมต่อได้';
+        console.error(err);
+        loadingText.innerText = 'เกิดข้อผิดพลาด';
         retryBtn.classList.remove('hidden');
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด',
-          text: err.message,
-          confirmButtonColor: '#6366f1'
-        });
+        Swal.fire('ข้อผิดพลาด', err.message, 'error');
       }
     }
 
     function calcTotal() {
       const inVal = parseInt(document.getElementById('inNews').value) || 0;
       const outVal = parseInt(document.getElementById('outNews').value) || 0;
-      document.getElementById('totalNews').textContent = (inVal + outVal).toLocaleString('th-TH');
+      document.getElementById('totalNews').innerText = (inVal + outVal).toLocaleString('th-TH');
     }
 
     async function sendReport() {
-      const reporter = document.getElementById('reporter').value;
+      const reporter = document.getElementById('reporter').value.trim();
       const inNews = parseInt(document.getElementById('inNews').value) || 0;
       const outNews = parseInt(document.getElementById('outNews').value) || 0;
       const total = inNews + outNews;
-      const dateStr = document.getElementById('thai-date').textContent;
+      const dateStr = document.getElementById('thai-date').innerText;
 
-      if (!reporter) {
-        Swal.fire('แจ้งเตือน', 'กรุณาเลือกชื่อผู้รายงาน', 'warning');
-        return;
-      }
-      if (total === 0) {
-        Swal.fire('แจ้งเตือน', 'กรุณาระบุจำนวนข่าวอย่างน้อย 1 รายการ', 'warning');
-        return;
-      }
+      if (!reporter) return Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกชื่อผู้รายงาน', 'warning');
+      if (total === 0) return Swal.fire('ข้อผิดพลาด', 'กรุณากรอกยอดข่าวอย่างน้อย 1 รายการ', 'warning');
 
       const btn = document.getElementById('submitBtn');
+      const originalHTML = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<span class="animate-pulse">กำลังส่ง...</span>';
 
-      const flexMsg = {
+      const flexMessage = {
         type: "bubble",
         size: "mega",
-        header: { type: "box", layout: "vertical", paddingAll: "20px", backgroundColor: "#4f46e5",
+        header: {
+          type: "box",
+          layout: "vertical",
+          paddingAll: "20px",
+          backgroundColor: "#4f46e5",
           contents: [
-            { type: "text", text: "📊 รายงานยอดข่าวสาร", weight: "bold", size: "xl", color: "#ffffff" },
+            { type: "text", text: "📊 รายงานสรุปยอดข่าวสาร", weight: "bold", size: "xl", color: "#ffffff" },
             { type: "text", text: dateStr, size: "sm", color: "#ffffffcc", margin: "md" }
           ]
         },
-        body: { type: "box", layout: "vertical", paddingAll: "25px",
+        body: {
+          type: "box",
+          layout: "vertical",
+          paddingAll: "25px",
           contents: [
             { type: "box", layout: "horizontal", contents: [
-              { type: "text", text: "ข่าวรับ", color: "#e2e8f0", flex: 3 },
-              { type: "text", text: inNews.toLocaleString() + " ข่าว", weight: "bold", color: "#34d399", align: "end", flex: 2 }
+              { type: "text", text: "📥 ข่าวรับ", color: "#cccccc", flex: 4 },
+              { type: "text", text: inNews.toLocaleString() + " ข่าว", weight: "bold", color: "#60a5fa", align: "end" }
             ]},
-            { type: "box", layout: "horizontal", margin: "md", contents: [
-              { type: "text", text: "ข่าวส่ง", color: "#e2e8f0", flex: 3 },
-              { type: "text", text: outNews.toLocaleString() + " ข่าว", weight: "bold", color: "#f87171", align: "end", flex: 2 }
+            { type: "box", layout: "horizontal", margin: "lg", contents: [
+              { type: "text", text: "📤 ข่าวส่ง", color: "#cccccc", flex: 4 },
+              { type: "text", text: outNews.toLocaleString() + " ข่าว", weight: "bold", color: "#f87171", align: "end" }
             ]},
             { type: "separator", margin: "xl" },
             { type: "box", layout: "horizontal", margin: "xl", contents: [
-              { type: "text", text: "รวมทั้งหมด", weight: "bold", size: "lg", color: "#e2e8f0" },
+              { type: "text", text: "รวมทั้งหมด", weight: "bold", size: "lg" },
               { type: "text", text: total.toLocaleString() + " ข่าว", weight: "bold", size: "xl", color: "#a78bfa", align: "end" }
             ]}
           ]
         },
-        footer: { type: "box", layout: "vertical",
-          contents: [{ type: "text", text: "ผู้รายงาน: " + reporter, size: "sm", color: "#94a3b8", align: "center" }]
+        footer: {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            { type: "text", text: "รายงานโดย: " + reporter, color: "#999999", size: "sm", align: "center" }
+          ]
         },
         styles: { footer: { separator: true } }
       };
 
       try {
+        // บันทึกข้อมูล
         await fetch(GAS_BACKEND_URL, {
           method: 'POST',
           body: JSON.stringify({ action: 'save', reporter, inNews, outNews, total, dateStr }),
           headers: { 'Content-Type': 'application/json' }
         });
 
-        const result = await liff.shareTargetPicker([{ type: "flex", altText: "รายงานข่าวสาร", contents: flexMsg }]);
+        // ส่ง Flex Message
+        const result = await liff.shareTargetPicker([{
+          type: "flex",
+          altText: "รายงานยอดข่าวสารประจำวัน",
+          contents: flexMessage
+        }]);
 
         if (result) {
-          Swal.fire({
-            icon: 'success',
-            title: 'ส่งสำเร็จ',
-            text: 'บันทึกและส่งรายงานเรียบร้อยแล้ว',
-            timer: 2000,
-            showConfirmButton: false
-          });
+          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกและส่งเรียบร้อย', timer: 2000 });
         } else {
-          Swal.fire('ยกเลิก', 'คุณไม่ได้เลือกกลุ่ม', 'info');
+          Swal.fire('ยกเลิก', 'ไม่ได้เลือกกลุ่มเป้าหมาย', 'info');
         }
       } catch (err) {
-        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+        Swal.fire('ข้อผิดพลาด', err.message, 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<span>ส่งรายงาน</span><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>';
+        btn.innerHTML = originalHTML;
       }
     }
 
